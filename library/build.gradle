@@ -20,6 +20,39 @@ android {
         }
     }
 }
+def siteUrl = 'https://github.com/karanbajaj07041993/DummyLibraryapplication'      // Homepage URL of the library
+def gitUrl = 'https://github.com/karanbajaj07041993/DummyLibraryapplication.git'   // Git repository URL
+group = "groupId" //maven group id
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven'
+install {
+    repositories.mavenInstaller {
+        // This generates POM.xml with proper parameters
+        pom {
+            project {
+                packaging 'aar'
+
+                // Add your description here
+                name 'dummy library'  //Your library description
+                url siteUrl
+
+                developers {
+                    developer {
+                        id 'karan-bajaj'  //your user ID
+                        name 'karan bajaj'     //your name
+                        email 'karan.bajaj@biz4solutions.com'  //your email
+                    }
+                }
+                scm {
+                    connection gitUrl
+                    developerConnection gitUrl
+                    url siteUrl
+                }
+            }
+        }
+    }
+}
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -28,4 +61,43 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.1.1'
     testCompile 'junit:junit:4.12'
+}
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+    // options.encoding = 'UTF-8'   this line removed bcoz giving error
+}
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    configurations = ['archives']
+    pkg {
+        repo = "maven"
+        name = "maven"
+        websiteUrl = siteUrl
+        vcsUrl = gitUrl
+        publish = true
+        version {
+            name = '0.1'
+            desc = 'Gradle Bintray Plugin 1.0 final'
+            //vcsTag = '0.1'
+            attributes = ['gradle-plugin': 'com.mylibrary:mylibrary:mylibrary']
+        }
+    }
 }
